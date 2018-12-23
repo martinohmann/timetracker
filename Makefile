@@ -9,7 +9,7 @@ help:
 
 .PHONY: build
 build: ## build
-	go build -o ttc \
+	go build -o timetracker \
 		-ldflags="-X 'github.com/martinohmann/timetracker/pkg/version.Version=$(VERSION)' \
 			-X 'github.com/martinohmann/timetracker/pkg/version.BuildTime=$(BUILD_TIME)'" \
 		main.go

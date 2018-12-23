@@ -14,7 +14,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show time tracking status",
 	Long:  `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(DatabaseFile)
+		db := database.MustOpen(FlagDatabase)
 		defer db.Close()
 
 		stmt := db.Where("finished = ?", false)

@@ -1,19 +1,23 @@
 package tracking
 
 import (
-	"fmt"
 	"io"
+	"sort"
+	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/martinohmann/timetracker/pkg/interval"
 	"github.com/olekukonko/tablewriter"
 )
 
-const DefaultTag = "default"
+const (
+	DefaultTag = "default"
+
+	TimeFormat = "2006/01/02 15:04:05"
+)
 
 type Tracking struct {
-	gorm.Model
+	ID         int
 	Tag        string
 	Interval   interval.Interval
 	IntervalID int
@@ -27,29 +31,34 @@ func RenderTable(w io.Writer, trackings ...Tracking) {
 
 	table := tablewriter.NewWriter(w)
 	table.SetHeader([]string{"ID", "Tag", "Start", "End", "Duration"})
+	table.SetColumnAlignment([]int{
+		tablewriter.ALIGN_RIGHT,
+		tablewriter.ALIGN_LEFT,
+		tablewriter.ALIGN_LEFT,
+		tablewriter.ALIGN_LEFT,
+		tablewriter.ALIGN_RIGHT,
+	})
 
 	var totalDuration time.Duration
 
+	sort.Sort(Collection(trackings))
+
 	for _, t := range trackings {
-		from := t.Interval.From.Format("2006-01-02 15:04:05")
-
-		var to, duration string
-
-		if t.Interval.To.IsZero() {
-			to = "-"
-		} else {
-			to = t.Interval.To.Format("2006-01-02 15:04:05")
+		start := t.Interval.Start.Format(TimeFormat)
+		end := "-"
+		if !t.Interval.End.IsZero() {
+			end = t.Interval.End.Format(TimeFormat)
 		}
 
-		duration = t.Interval.Duration().String()
-		totalDuration += t.Interval.Duration()
+		duration := t.Interval.Duration().Truncate(time.Second)
+		totalDuration += t.Interval.Duration().Truncate(time.Second)
 
 		table.Append([]string{
-			fmt.Sprintf("%d", t.ID),
+			strconv.Itoa(int(t.ID)),
 			t.Tag,
-			from,
-			to,
-			duration,
+			start,
+			end,
+			duration.String(),
 		})
 	}
 
@@ -58,6 +67,7 @@ func RenderTable(w io.Writer, trackings ...Tracking) {
 	table.SetFooterAlignment(tablewriter.ALIGN_RIGHT)
 
 	if len(trackings) > 1 {
+		totalDuration = totalDuration.Truncate(time.Second)
 		table.SetFooter([]string{"", "", "", "Total", totalDuration.String()})
 	}
 

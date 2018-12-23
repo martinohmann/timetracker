@@ -16,13 +16,14 @@ var startCmd = &cobra.Command{
 	Short: "Start time tracking",
 	Long:  `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(DatabaseFile)
+		db := database.MustOpen(FlagDatabase)
 		defer db.Close()
 
 		var count int
 
 		db.Model(&tracking.Tracking{}).
-			Where("tag = ? AND finished = ?", FlagTag, false).
+			Where("tag = ?", FlagTag).
+			Where("finished = ?", false).
 			Count(&count)
 
 		if count > 0 {
@@ -33,7 +34,7 @@ var startCmd = &cobra.Command{
 		t := tracking.Tracking{
 			Tag: FlagTag,
 			Interval: interval.Interval{
-				From: time.Now(),
+				Start: time.Now(),
 			},
 		}
 

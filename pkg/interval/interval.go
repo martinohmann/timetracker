@@ -2,42 +2,40 @@ package interval
 
 import (
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 type Interval struct {
-	gorm.Model
-	From time.Time
-	To   time.Time
+	ID    int
+	Start time.Time
+	End   time.Time
 }
 
-func New(tag string, from, to time.Time) Interval {
-	if !to.IsZero() && to.Before(from) {
-		from, to = from, to
+func New(tag string, start, end time.Time) Interval {
+	if !end.IsZero() && end.Before(start) {
+		start, end = end, start
 	}
 
-	return Interval{From: from, To: to}
+	return Interval{Start: start, End: end}
 }
 
 func (i Interval) IsOpen() bool {
-	return i.To.IsZero()
+	return i.End.IsZero()
 }
 
 func (i Interval) Duration() time.Duration {
-	if i.To.IsZero() {
-		return time.Now().Sub(i.From)
+	if i.End.IsZero() {
+		return time.Now().Sub(i.Start)
 	}
 
-	return i.To.Sub(i.From)
+	return i.End.Sub(i.Start)
 }
 
 func (i Interval) Equal(other Interval) bool {
-	return i.From.Equal(other.From) && i.To.Equal(other.To)
+	return i.Start.Equal(other.Start) && i.End.Equal(other.End)
 }
 
 func (i Interval) Before(other Interval) bool {
-	if i.From.Before(other.From) || (i.From.Equal(other.From) && i.To.Before(other.To)) {
+	if i.Start.Before(other.Start) || (i.Start.Equal(other.Start) && i.End.Before(other.End)) {
 		return true
 	}
 

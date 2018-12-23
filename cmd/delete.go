@@ -10,23 +10,17 @@ import (
 )
 
 var delCmd = &cobra.Command{
-	Use:     "del",
-	Aliases: []string{"delete"},
+	Use:     "delete",
+	Aliases: []string{"del"},
 	Short:   "Delete a tracked time",
 	Long:    `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(DatabaseFile)
+		db := database.MustOpen(FlagDatabase)
 		defer db.Close()
-
-		if FlagID == 0 {
-			fmt.Println("need tracking id")
-			os.Exit(1)
-		}
 
 		var t tracking.Tracking
 
-		err := db.First(&t, FlagID).Error
-		if err != nil {
+		if err := db.First(&t, FlagID).Error; err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

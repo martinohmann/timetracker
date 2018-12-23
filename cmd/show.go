@@ -25,10 +25,10 @@ var showYearCmd = &cobra.Command{
 	Short: "Show year",
 	Long:  `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		from := dateutil.BeginOfDay(FlagYear, time.January, 1)
-		to := dateutil.EndOfDay(FlagYear, time.December, 31)
+		start := dateutil.BeginOfDay(FlagYear, time.January, 1)
+		end := start.AddDate(1, 0, 0)
 
-		show(from, to, FlagTag)
+		show(start, end, FlagTag)
 	},
 }
 
@@ -37,11 +37,10 @@ var showMonthCmd = &cobra.Command{
 	Short: "Show month",
 	Long:  `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		from := dateutil.BeginOfDay(FlagYear, time.Month(FlagMonth), 1)
-		lastOfMonth := from.AddDate(0, 1, -1)
-		to := dateutil.EndOfDay(lastOfMonth.Year(), lastOfMonth.Month(), lastOfMonth.Day())
+		start := dateutil.BeginOfDay(FlagYear, time.Month(FlagMonth), 1)
+		end := start.AddDate(0, 1, 0)
 
-		show(from, to, FlagTag)
+		show(start, end, FlagTag)
 	},
 }
 
@@ -60,12 +59,10 @@ var showWeekCmd = &cobra.Command{
 			date = date.AddDate(0, 0, -1)
 		}
 
-		endOfWeek := date.AddDate(0, 0, 6)
+		start := dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
+		end := start.AddDate(0, 0, 7)
 
-		from := dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
-		to := dateutil.EndOfDay(endOfWeek.Year(), endOfWeek.Month(), endOfWeek.Day())
-
-		show(from, to, FlagTag)
+		show(start, end, FlagTag)
 	},
 }
 
@@ -80,26 +77,25 @@ var showDateCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		date := FlagDate
+		start := dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
+		end := start.AddDate(0, 0, 1)
 
-		from := dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
-		to := dateutil.EndOfDay(date.Year(), date.Month(), date.Day())
-
-		show(from, to, FlagTag)
+		show(start, end, FlagTag)
 	},
 }
 
-func show(from, to time.Time, tag string) {
-	db := database.MustOpen(DatabaseFile)
+func show(start, end time.Time, tag string) {
+	db := database.MustOpen(FlagDatabase)
 	defer db.Close()
 
 	stmt := db.Joins("JOIN intervals ON trackings.interval_id = intervals.id")
 
-	if !from.IsZero() {
-		stmt = stmt.Where("intervals.`from` >= ?", from)
+	if !start.IsZero() {
+		stmt = stmt.Where("intervals.start >= ?", start)
 	}
 
-	if !to.IsZero() {
-		stmt = stmt.Where("intervals.`to` != ? AND intervals.`to` <= ?", time.Time{}, to)
+	if !end.IsZero() {
+		stmt = stmt.Where("intervals.end < ?", end)
 	}
 
 	if tag != "" {

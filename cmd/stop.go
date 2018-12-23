@@ -16,19 +16,22 @@ var stopCmd = &cobra.Command{
 	Short: "stop time tracking",
 	Long:  `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(DatabaseFile)
+		db := database.MustOpen(FlagDatabase)
 		defer db.Close()
 
 		var err error
 		var t tracking.Tracking
 
+		if FlagTag != "" {
+			db = db.Where("tag = ?", FlagTag)
+		}
+
 		if FlagID > 0 {
 			err = db.First(&t, FlagID).Error
 		} else {
-			var tm time.Time
 			err = db.
 				Joins("JOIN intervals ON trackings.interval_id = intervals.id").
-				Where("intervals.`to` = ?", tm).
+				Where("intervals.end = ?", time.Time{}).
 				Last(&t).Error
 		}
 
@@ -36,7 +39,8 @@ var stopCmd = &cobra.Command{
 			fmt.Println("nothing to stop")
 			os.Exit(0)
 		} else if err != nil {
-			panic(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 		if t.Finished {
@@ -44,7 +48,7 @@ var stopCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		t.Interval.To = time.Now()
+		t.Interval.End = time.Now()
 		t.Finished = true
 
 		db.Save(&t)
@@ -54,6 +58,7 @@ var stopCmd = &cobra.Command{
 }
 
 func init() {
+	stopCmd.Flags().StringVarP(&FlagTag, "tag", "t", "", "Tracking tag to use")
 	stopCmd.Flags().IntVarP(&FlagID, "id", "", 0, "Tracking ID")
 	rootCmd.AddCommand(stopCmd)
 }

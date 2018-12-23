@@ -16,20 +16,20 @@ var addCmd = &cobra.Command{
 	Short: "add an interval manually",
 	Long:  `Long description`,
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(DatabaseFile)
+		db := database.MustOpen(FlagDatabase)
 		defer db.Close()
 
-		from, to := FlagDateStart, FlagDateEnd
-		if from.IsZero() {
-			from = time.Now()
+		start, end := FlagDateStart, FlagDateEnd
+		if start.IsZero() {
+			start = time.Now()
 		}
 
 		t := tracking.Tracking{
 			Tag:      FlagTag,
-			Finished: !to.IsZero(),
+			Finished: !end.IsZero(),
 			Interval: interval.Interval{
-				From: from,
-				To:   to,
+				Start: start,
+				End:   end,
 			},
 		}
 
@@ -49,12 +49,12 @@ var addCmd = &cobra.Command{
 
 			db.Joins("JOIN intervals ON trackings.interval_id = intervals.id").
 				Where(
-					"(intervals.`from` <= ? AND intervals.`to` >= ?) OR "+
-						"(intervals.`from` <= ? AND intervals.`to` >= ?)",
-					t.Interval.From,
-					t.Interval.From,
-					t.Interval.To,
-					t.Interval.To,
+					"(intervals.start <= ? AND intervals.end >= ?) OR "+
+						"(intervals.start <= ? AND intervals.end >= ?)",
+					t.Interval.Start,
+					t.Interval.Start,
+					t.Interval.End,
+					t.Interval.End,
 				).
 				Find(&trackings)
 

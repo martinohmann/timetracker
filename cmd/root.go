@@ -8,6 +8,7 @@ import (
 	"github.com/martinohmann/timetracker/pkg/dateutil"
 	"github.com/martinohmann/timetracker/pkg/version"
 	"github.com/spf13/cobra"
+	tilde "gopkg.in/mattes/go-expand-tilde.v1"
 )
 
 var rootCmd = &cobra.Command{
@@ -29,6 +30,7 @@ var rootCmd = &cobra.Command{
 var (
 	FlagID              int
 	FlagTag             string
+	FlagDatabase        string
 	FlagDateStartString string
 	FlagDateEndString   string
 	FlagDateString      string
@@ -40,11 +42,15 @@ var (
 	FlagDate      time.Time
 )
 
-const DatabaseFile = "/tmp/test.db"
-
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&FlagDateStartString, "from", "", "", "Start date for tracking")
-	rootCmd.PersistentFlags().StringVarP(&FlagDateEndString, "to", "", "", "End date for tracking")
+	dbPath, err := tilde.Expand("~/.timetracker.db")
+	if err != nil {
+		panic(err)
+	}
+
+	rootCmd.PersistentFlags().StringVarP(&FlagDatabase, "database", "", dbPath, "Path to sqlite database")
+	rootCmd.PersistentFlags().StringVarP(&FlagDateStartString, "start", "", "", "Start date for tracking")
+	rootCmd.PersistentFlags().StringVarP(&FlagDateEndString, "end", "", "", "End date for tracking")
 }
 
 func Execute() {
