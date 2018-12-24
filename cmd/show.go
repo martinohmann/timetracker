@@ -8,111 +8,53 @@ import (
 	"github.com/martinohmann/timetracker/pkg/dateutil"
 	"github.com/martinohmann/timetracker/pkg/interval"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var showCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Show all intervals",
-	Run: func(cmd *cobra.Command, args []string) {
-		show(cmd, FlagDateStart, FlagDateEnd, FlagTag)
-	},
-}
-
-var showYearCmd = &cobra.Command{
-	Use:   "year",
-	Short: "Show year's intervals",
-	Run: func(cmd *cobra.Command, args []string) {
-		start := dateutil.BeginOfDay(FlagYear, time.January, 1)
-		end := start.AddDate(1, 0, 0)
-
-		show(cmd, start, end, FlagTag)
-	},
-}
-
-var showMonthCmd = &cobra.Command{
-	Use:   "month",
-	Short: "Show month's intervals",
-	Run: func(cmd *cobra.Command, args []string) {
-		start := dateutil.BeginOfDay(FlagYear, time.Month(FlagMonth), 1)
-		end := start.AddDate(0, 1, 0)
-
-		show(cmd, start, end, FlagTag)
-	},
-}
-
-var showWeekCmd = &cobra.Command{
-	Use:   "week",
-	Short: "Show week's intervals",
-	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		FlagDate, err = dateutil.ParseDate(FlagDateString, time.Now())
-		return
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		date := FlagDate
-
-		for date.Weekday() != time.Monday {
-			date = date.AddDate(0, 0, -1)
-		}
-
-		start := dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
-		end := start.AddDate(0, 0, 7)
-
-		show(cmd, start, end, FlagTag)
-	},
-}
-
-var showDateCmd = &cobra.Command{
-	Use:     "date",
-	Aliases: []string{"day"},
-	Short:   "Show date's intervals",
-	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		FlagDate, err = dateutil.ParseDate(FlagDateString, time.Now())
-		return
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		date := FlagDate
-		start := dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
-		end := start.AddDate(0, 0, 1)
-
-		show(cmd, start, end, FlagTag)
-	},
-}
-
-func show(cmd *cobra.Command, start, end time.Time, tag string) {
-	db := database.MustOpen(FlagDatabase, FlagDebug)
-	defer db.Close()
-
-	stmt := db
-
-	if !start.IsZero() {
-		stmt = stmt.Where("start >= ?", start)
+var (
+	showCmd = &cobra.Command{
+		Use:   "show",
+		Short: "Show all intervals",
+		Run:   show,
 	}
 
-	if !end.IsZero() {
-		stmt = stmt.Where("start < ? AND end < ?", end, end)
+	showYearCmd = &cobra.Command{
+		Use:    "year",
+		Short:  "Show year's intervals",
+		PreRun: showYear,
+		Run:    show,
 	}
 
-	if tag != "" {
-		stmt = stmt.Where("tag = ?", tag)
+	showMonthCmd = &cobra.Command{
+		Use:    "month",
+		Short:  "Show month's intervals",
+		PreRun: showMonth,
+		Run:    show,
 	}
 
-	var intervals []interval.Interval
-	if err := stmt.Find(&intervals).Error; err != nil {
-		cmd.Println(err)
-		os.Exit(1)
+	showWeekCmd = &cobra.Command{
+		Use:     "week",
+		Short:   "Show week's intervals",
+		PreRunE: showWeek,
+		Run:     show,
 	}
 
-	interval.RenderTable(cmd.OutOrStdout(), intervals...)
-}
+	showDateCmd = &cobra.Command{
+		Use:     "date",
+		Aliases: []string{"day"},
+		Short:   "Show date's intervals",
+		PreRunE: showDate,
+		Run:     show,
+	}
+)
 
 func init() {
-	now := time.Now()
+	showMonthCmd.Flags().IntVar(&month, "month", int(time.Now().Month()), "filter month")
 
-	showYearCmd.Flags().IntVarP(&FlagYear, "year", "", now.Year(), "filter year")
-	showMonthCmd.Flags().AddFlagSet(showYearCmd.Flags())
-	showMonthCmd.Flags().IntVarP(&FlagMonth, "month", "", int(now.Month()), "filter month")
-	showDateCmd.Flags().StringVarP(&FlagDateString, "date", "", "", "filter date")
-	showWeekCmd.Flags().AddFlagSet(showDateCmd.Flags())
+	initializeYearFlag(showYearCmd)
+	initializeYearFlag(showMonthCmd)
+	initializeDateFlag(showWeekCmd)
+	initializeDateFlag(showDateCmd)
 
 	showCmd.AddCommand(showYearCmd)
 	showCmd.AddCommand(showMonthCmd)
@@ -120,4 +62,65 @@ func init() {
 	showCmd.AddCommand(showDateCmd)
 
 	rootCmd.AddCommand(showCmd)
+}
+
+func showYear(cmd *cobra.Command, args []string) {
+	startDate = dateutil.BeginOfDay(year, time.January, 1)
+	endDate = startDate.AddDate(1, 0, 0)
+}
+
+func showMonth(cmd *cobra.Command, args []string) {
+	startDate = dateutil.BeginOfDay(year, time.Month(month), 1)
+	endDate = startDate.AddDate(0, 1, 0)
+}
+
+func showWeek(cmd *cobra.Command, args []string) (err error) {
+	if date, err = dateutil.ParseDate(dateString, time.Now()); err != nil {
+		return
+	}
+
+	for date.Weekday() != time.Monday {
+		date = date.AddDate(0, 0, -1)
+	}
+
+	startDate = dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
+	endDate = startDate.AddDate(0, 0, 7)
+
+	return
+}
+
+func showDate(cmd *cobra.Command, args []string) (err error) {
+	if date, err = dateutil.ParseDate(dateString, time.Now()); err != nil {
+		return
+	}
+
+	startDate = dateutil.BeginOfDay(date.Year(), date.Month(), date.Day())
+	endDate = startDate.AddDate(0, 0, 1)
+
+	return
+}
+
+func show(cmd *cobra.Command, args []string) {
+	db := database.MustOpen(viper.GetString("database"))
+	defer db.Close()
+
+	if !startDate.IsZero() {
+		db = db.Where("start >= ?", startDate)
+	}
+
+	if !endDate.IsZero() {
+		db = db.Where("start < ? AND end < ?", endDate, endDate)
+	}
+
+	if tag != "" {
+		db = db.Where("tag = ?", tag)
+	}
+
+	var intervals []interval.Interval
+	if err := db.Find(&intervals).Error; err != nil {
+		cmd.Println(err)
+		os.Exit(1)
+	}
+
+	interval.RenderTable(cmd.OutOrStdout(), intervals...)
 }
