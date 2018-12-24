@@ -2,11 +2,10 @@ package cmd
 
 import (
 	"os"
-	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/martinohmann/timetracker/pkg/database"
 	"github.com/martinohmann/timetracker/pkg/interval"
+	"github.com/martinohmann/timetracker/pkg/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -23,30 +22,19 @@ func init() {
 }
 
 func stop(cmd *cobra.Command, args []string) {
-	db := database.MustOpen(viper.GetString("database"))
-	defer db.Close()
+	database.Init(viper.GetString("database"))
+	defer database.Close()
 
 	var err error
 	var i interval.Interval
 
-	if tag != "" {
-		db = db.Where("tag = ?", tag)
-	}
-
 	if id > 0 {
-		err = db.First(&i, id).Error
+		i, err = database.FindIntervalByID(id)
 	} else {
-		err = db.Where("end = ?", time.Time{}).
-			Last(&i).Error
+		i, err = database.FindLastOpenIntervalForTag(tag)
 	}
 
-	if gorm.IsRecordNotFoundError(err) {
-		cmd.Println("nothing to stop")
-		os.Exit(0)
-	} else if err != nil {
-		cmd.Println(err)
-		os.Exit(1)
-	}
+	exitOnError(err)
 
 	if i.IsClosed() {
 		cmd.Printf("interval %d is already closed\n", i.ID)
@@ -55,7 +43,9 @@ func stop(cmd *cobra.Command, args []string) {
 
 	i.Close()
 
-	db.Save(&i)
+	exitOnError(database.SaveInterval(&i))
 
-	interval.RenderTable(cmd.OutOrStdout(), i)
+	table.Render(cmd.OutOrStdout(), i)
+
+	cmd.Printf("interval with ID %d closed\n", id)
 }

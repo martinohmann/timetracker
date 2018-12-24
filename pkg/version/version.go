@@ -1,6 +1,9 @@
 package version
 
 var (
-	Version   = "develop"
+	// Version defines the application version
+	Version = "develop"
+
+	// BuildTime defines the build time as string
 	BuildTime = "unknown"
 )

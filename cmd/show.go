@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"os"
 	"time"
 
 	"github.com/martinohmann/timetracker/pkg/database"
 	"github.com/martinohmann/timetracker/pkg/dateutil"
 	"github.com/martinohmann/timetracker/pkg/interval"
+	"github.com/martinohmann/timetracker/pkg/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -101,26 +101,15 @@ func showDate(cmd *cobra.Command, args []string) (err error) {
 }
 
 func show(cmd *cobra.Command, args []string) {
-	db := database.MustOpen(viper.GetString("database"))
-	defer db.Close()
+	database.Init(viper.GetString("database"))
+	defer database.Close()
 
-	if !startDate.IsZero() {
-		db = db.Where("start >= ?", startDate)
-	}
+	intervals, err := database.FindIntervalsByCriteria(interval.Interval{
+		Tag:   tag,
+		Start: startDate,
+		End:   endDate,
+	})
+	exitOnError(err)
 
-	if !endDate.IsZero() {
-		db = db.Where("start < ? AND end < ?", endDate, endDate)
-	}
-
-	if tag != "" {
-		db = db.Where("tag = ?", tag)
-	}
-
-	var intervals []interval.Interval
-	if err := db.Find(&intervals).Error; err != nil {
-		cmd.Println(err)
-		os.Exit(1)
-	}
-
-	interval.RenderTable(cmd.OutOrStdout(), intervals...)
+	table.Render(cmd.OutOrStdout(), intervals...)
 }

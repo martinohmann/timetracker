@@ -6,6 +6,7 @@ import (
 
 	"github.com/martinohmann/timetracker/pkg/database"
 	"github.com/martinohmann/timetracker/pkg/interval"
+	"github.com/martinohmann/timetracker/pkg/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -21,15 +22,11 @@ func init() {
 }
 
 func start(cmd *cobra.Command, args []string) {
-	db := database.MustOpen(viper.GetString("database"))
-	defer db.Close()
+	database.Init(viper.GetString("database"))
+	defer database.Close()
 
-	var count int
-
-	db.Model(&interval.Interval{}).
-		Where("tag = ?", tag).
-		Where("end = ?", time.Time{}).
-		Count(&count)
+	count, err := database.CountOpenIntervalsForTag(tag)
+	exitOnError(err)
 
 	if count > 0 {
 		cmd.Printf("there is already an open interval for tag %q\n", tag)
@@ -41,7 +38,9 @@ func start(cmd *cobra.Command, args []string) {
 		Start: time.Now(),
 	}
 
-	db.Save(&i)
+	exitOnError(database.SaveInterval(&i))
 
-	interval.RenderTable(cmd.OutOrStdout(), i)
+	table.Render(cmd.OutOrStdout(), i)
+
+	cmd.Printf("interval with tag %q started\n", tag)
 }

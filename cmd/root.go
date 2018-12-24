@@ -98,6 +98,13 @@ func initializeIdFlag(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&id, "id", 0, "interval ID")
 }
 
+func exitOnError(err error) {
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

@@ -8,16 +8,35 @@ import (
 	tilde "gopkg.in/mattes/go-expand-tilde.v1"
 )
 
-func MustOpen(filename string) *gorm.DB {
-	filename, err := tilde.Expand(filename)
-	if err != nil {
+var db *gorm.DB
+
+// Init opens and initializes the database
+func Init(filename string) {
+	var err error
+
+	if filename, err = tilde.Expand(filename); err != nil {
 		panic(err)
 	}
 
-	db, err := gorm.Open("sqlite3", filename)
-	if err != nil {
+	if db, err = gorm.Open("sqlite3", filename); err != nil {
 		panic(err)
 	}
 
-	return db.LogMode(viper.GetBool("debug")).AutoMigrate(&interval.Interval{})
+	db = db.LogMode(viper.GetBool("debug")).
+		AutoMigrate(&interval.Interval{})
+}
+
+// Close closes the database
+func Close() {
+	if db != nil {
+		db.Close()
+	}
+}
+
+func excludeRecordNotFoundError(err error) error {
+	if err != nil && !gorm.IsRecordNotFoundError(err) {
+		return err
+	}
+
+	return nil
 }

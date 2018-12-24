@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/martinohmann/timetracker/pkg/database"
-	"github.com/martinohmann/timetracker/pkg/interval"
+	"github.com/martinohmann/timetracker/pkg/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -24,19 +21,15 @@ func init() {
 }
 
 func del(cmd *cobra.Command, args []string) {
-	db := database.MustOpen(viper.GetString("database"))
-	defer db.Close()
+	database.Init(viper.GetString("database"))
+	defer database.Close()
 
-	var i interval.Interval
+	i, err := database.FindIntervalByID(id)
+	exitOnError(err)
 
-	if err := db.First(&i, id).Error; err != nil {
-		cmd.Println(err)
-		os.Exit(1)
-	}
+	exitOnError(database.DeleteInterval(i))
 
-	db.Delete(&i)
+	table.Render(cmd.OutOrStdout(), i)
 
-	interval.RenderTable(cmd.OutOrStdout(), i)
-
-	fmt.Println("deleted")
+	cmd.Printf("interval with ID %d deleted\n", id)
 }
