@@ -13,35 +13,40 @@ import (
 
 var (
 	showCmd = &cobra.Command{
-		Use:   "show",
-		Short: "Show all intervals",
-		Run:   show,
+		Use:               "show [tag]",
+		Aliases:           []string{"s", "status"},
+		Short:             "Show all intervals",
+		PersistentPreRunE: preRunE(parseTagArg, parseDateRange),
+		Run:               show,
 	}
 
 	showYearCmd = &cobra.Command{
-		Use:    "year",
-		Short:  "Show year's intervals",
-		PreRun: showYear,
-		Run:    show,
+		Use:     "year [tag]",
+		Aliases: []string{"y"},
+		Short:   "Show year's intervals",
+		PreRun:  showYear,
+		Run:     show,
 	}
 
 	showMonthCmd = &cobra.Command{
-		Use:    "month",
-		Short:  "Show month's intervals",
-		PreRun: showMonth,
-		Run:    show,
+		Use:     "month [tag]",
+		Aliases: []string{"m"},
+		Short:   "Show month's intervals",
+		PreRun:  showMonth,
+		Run:     show,
 	}
 
 	showWeekCmd = &cobra.Command{
-		Use:     "week",
+		Use:     "week [tag]",
+		Aliases: []string{"w"},
 		Short:   "Show week's intervals",
 		PreRunE: showWeek,
 		Run:     show,
 	}
 
 	showDateCmd = &cobra.Command{
-		Use:     "date",
-		Aliases: []string{"day"},
+		Use:     "date [tag]",
+		Aliases: []string{"d", "day"},
 		Short:   "Show date's intervals",
 		PreRunE: showDate,
 		Run:     show,
@@ -49,6 +54,9 @@ var (
 )
 
 func init() {
+	initializeDateRangeFlags(showCmd)
+	initializeTagFlag(showCmd)
+
 	showMonthCmd.Flags().IntVar(&month, "month", int(time.Now().Month()), "filter month")
 
 	initializeYearFlag(showYearCmd)

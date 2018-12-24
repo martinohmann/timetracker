@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/martinohmann/timetracker/pkg/dateutil"
@@ -14,10 +15,9 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:               "timetracker",
-		Short:             "Track time intervals using tags",
-		Version:           version.Version,
-		PersistentPreRunE: preFlight,
+		Use:     "timetracker",
+		Short:   "Track time intervals using tags",
+		Version: version.Version,
 	}
 
 	dateString      string
@@ -39,9 +39,6 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&config, "config", "", "config file (default is $HOME/.timetracker.yaml)")
-	rootCmd.PersistentFlags().StringVar(&startDateString, "start", "", "start date of the interval")
-	rootCmd.PersistentFlags().StringVar(&endDateString, "end", "", "end date of the interval")
-	rootCmd.PersistentFlags().StringVarP(&tag, "tag", "t", "", "interval tag to use")
 	rootCmd.PersistentFlags().String("database", "~/.timetracker.db", "path to sqlite database")
 	rootCmd.PersistentFlags().Bool("debug", false, "enable debug output")
 	viper.BindPFlag("database", rootCmd.PersistentFlags().Lookup("database"))
@@ -76,8 +73,8 @@ func initConfig() {
 	}
 }
 
-// preFlight converts string flags to proper time.Time values
-func preFlight(cmd *cobra.Command, args []string) (err error) {
+// parseDateRange converts string flags to proper time.Time values
+func parseDateRange(cmd *cobra.Command, args []string) (err error) {
 	if startDate, err = dateutil.ParseDate(startDateString, time.Time{}); err != nil {
 		return
 	}
@@ -94,6 +91,15 @@ func initializeDateFlag(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&dateString, "date", "", "filter date")
 }
 
+func initializeDateRangeFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVar(&startDateString, "start", "", "start date of the interval")
+	cmd.PersistentFlags().StringVar(&endDateString, "end", "", "end date of the interval")
+}
+
+func initializeTagFlag(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringVarP(&tag, "tag", "t", "", "interval tag to use")
+}
+
 func initializeIdFlag(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&id, "id", 0, "interval ID")
 }
@@ -102,6 +108,34 @@ func exitOnError(err error) {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+}
+
+func parseTagArg(cmd *cobra.Command, args []string) (err error) {
+	if len(args) > 0 {
+		tag = args[0]
+	}
+
+	return
+}
+
+func parseIdArg(cmd *cobra.Command, args []string) (err error) {
+	if len(args) > 0 {
+		id, err = strconv.Atoi(args[0])
+	}
+
+	return
+}
+
+func preRunE(fns ...func(*cobra.Command, []string) error) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, fn := range fns {
+			if err := fn(cmd, args); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 }
 

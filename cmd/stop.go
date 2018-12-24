@@ -11,13 +11,16 @@ import (
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop",
-	Short: "Stop an interval",
-	Run:   stop,
+	Use:     "stop [tag]",
+	Aliases: []string{"c", "close"},
+	Short:   "Stop an interval",
+	PreRunE: parseTagArg,
+	Run:     stop,
 }
 
 func init() {
 	initializeIdFlag(stopCmd)
+	initializeTagFlag(stopCmd)
 	rootCmd.AddCommand(stopCmd)
 }
 

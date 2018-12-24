@@ -12,12 +12,15 @@ import (
 )
 
 var startCmd = &cobra.Command{
-	Use:   "start",
-	Short: "Start an interval",
-	Run:   start,
+	Use:     "start [tag]",
+	Aliases: []string{"o", "open"},
+	Short:   "Start an interval",
+	PreRunE: parseTagArg,
+	Run:     start,
 }
 
 func init() {
+	initializeTagFlag(startCmd)
 	rootCmd.AddCommand(startCmd)
 }
 

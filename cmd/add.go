@@ -12,12 +12,16 @@ import (
 )
 
 var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Add an interval manually",
-	Run:   add,
+	Use:     "add [tag]",
+	Aliases: []string{"a"},
+	Short:   "Add an interval manually",
+	PreRunE: preRunE(parseTagArg, parseDateRange),
+	Run:     add,
 }
 
 func init() {
+	initializeDateRangeFlags(addCmd)
+	initializeTagFlag(addCmd)
 	rootCmd.AddCommand(addCmd)
 }
 

@@ -8,15 +8,15 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:     "delete",
-	Aliases: []string{"del"},
+	Use:     "delete [id]",
+	Aliases: []string{"d", "del", "remove", "rm"},
 	Short:   "Delete an interval",
+	PreRunE: parseIdArg,
 	Run:     del,
 }
 
 func init() {
 	initializeIdFlag(deleteCmd)
-	deleteCmd.MarkFlagRequired("id")
 	rootCmd.AddCommand(deleteCmd)
 }
 
