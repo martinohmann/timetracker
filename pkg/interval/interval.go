@@ -6,6 +6,7 @@ import (
 
 type Interval struct {
 	ID    int
+	Tag   string
 	Start time.Time
 	End   time.Time
 }
@@ -15,11 +16,15 @@ func New(tag string, start, end time.Time) Interval {
 		start, end = end, start
 	}
 
-	return Interval{Start: start, End: end}
+	return Interval{Tag: tag, Start: start, End: end}
 }
 
 func (i Interval) IsOpen() bool {
 	return i.End.IsZero()
+}
+
+func (i Interval) IsClosed() bool {
+	return !i.IsOpen()
 }
 
 func (i Interval) Duration() time.Duration {

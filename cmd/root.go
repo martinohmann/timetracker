@@ -12,9 +12,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:     "ttc",
-	Short:   "Simple time tracker",
-	Long:    `Long description`,
+	Use:     "timetracker",
+	Short:   "Track time intervals using tags",
 	Version: version.Version,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 		FlagDateStart, err = dateutil.ParseDate(FlagDateStartString, time.Time{})
@@ -28,18 +27,19 @@ var rootCmd = &cobra.Command{
 }
 
 var (
-	FlagID              int
-	FlagTag             string
+	FlagDebug           bool
 	FlagDatabase        string
+	FlagDateString      string
 	FlagDateStartString string
 	FlagDateEndString   string
-	FlagDateString      string
-	FlagYear            int
+	FlagID              int
 	FlagMonth           int
+	FlagTag             string
+	FlagYear            int
 
+	FlagDate      time.Time
 	FlagDateStart time.Time
 	FlagDateEnd   time.Time
-	FlagDate      time.Time
 )
 
 func init() {
@@ -48,9 +48,11 @@ func init() {
 		panic(err)
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&FlagDatabase, "database", "", dbPath, "Path to sqlite database")
-	rootCmd.PersistentFlags().StringVarP(&FlagDateStartString, "start", "", "", "Start date for tracking")
-	rootCmd.PersistentFlags().StringVarP(&FlagDateEndString, "end", "", "", "End date for tracking")
+	rootCmd.PersistentFlags().StringVar(&FlagDatabase, "database", dbPath, "path to sqlite database")
+	rootCmd.PersistentFlags().BoolVar(&FlagDebug, "debug", false, "enable debug output")
+	rootCmd.PersistentFlags().StringVar(&FlagDateStartString, "start", "", "start date of the interval")
+	rootCmd.PersistentFlags().StringVar(&FlagDateEndString, "end", "", "end date of the interval")
+	rootCmd.PersistentFlags().StringVarP(&FlagTag, "tag", "t", "", "interval tag to use")
 }
 
 func Execute() {

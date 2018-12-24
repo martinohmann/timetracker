@@ -1,50 +1,44 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/martinohmann/timetracker/pkg/database"
 	"github.com/martinohmann/timetracker/pkg/interval"
-	"github.com/martinohmann/timetracker/pkg/tracking"
 	"github.com/spf13/cobra"
 )
 
 var startCmd = &cobra.Command{
 	Use:   "start",
-	Short: "Start time tracking",
-	Long:  `Long description`,
+	Short: "Start an interval",
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(FlagDatabase)
+		db := database.MustOpen(FlagDatabase, FlagDebug)
 		defer db.Close()
 
 		var count int
 
-		db.Model(&tracking.Tracking{}).
+		db.Model(&interval.Interval{}).
 			Where("tag = ?", FlagTag).
-			Where("finished = ?", false).
+			Where("end = ?", time.Time{}).
 			Count(&count)
 
 		if count > 0 {
-			fmt.Printf("there is already a tracking running for tag %q\n", FlagTag)
+			cmd.Printf("there is already an open interval for tag %q\n", FlagTag)
 			os.Exit(1)
 		}
 
-		t := tracking.Tracking{
-			Tag: FlagTag,
-			Interval: interval.Interval{
-				Start: time.Now(),
-			},
+		i := interval.Interval{
+			Tag:   FlagTag,
+			Start: time.Now(),
 		}
 
-		db.Save(&t)
+		db.Save(&i)
 
-		tracking.RenderTable(os.Stdout, t)
+		interval.RenderTable(cmd.OutOrStdout(), i)
 	},
 }
 
 func init() {
-	startCmd.Flags().StringVarP(&FlagTag, "tag", "t", tracking.DefaultTag, "Tracking tag to use")
 	rootCmd.AddCommand(startCmd)
 }

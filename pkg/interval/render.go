@@ -1,4 +1,4 @@
-package tracking
+package interval
 
 import (
 	"io"
@@ -6,26 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/martinohmann/timetracker/pkg/interval"
 	"github.com/olekukonko/tablewriter"
 )
 
 const (
-	DefaultTag = "default"
-
 	TimeFormat = "2006/01/02 15:04:05"
 )
 
-type Tracking struct {
-	ID         int
-	Tag        string
-	Interval   interval.Interval
-	IntervalID int
-	Finished   bool
-}
-
-func RenderTable(w io.Writer, trackings ...Tracking) {
-	if len(trackings) == 0 {
+func RenderTable(w io.Writer, intervals ...Interval) {
+	if len(intervals) == 0 {
 		return
 	}
 
@@ -41,21 +30,25 @@ func RenderTable(w io.Writer, trackings ...Tracking) {
 
 	var totalDuration time.Duration
 
-	sort.Sort(Collection(trackings))
+	sort.Sort(SortByDate(intervals))
 
-	for _, t := range trackings {
-		start := t.Interval.Start.Format(TimeFormat)
+	for _, i := range intervals {
+		start := i.Start.Format(TimeFormat)
 		end := "-"
-		if !t.Interval.End.IsZero() {
-			end = t.Interval.End.Format(TimeFormat)
+		if i.IsClosed() {
+			end = i.End.Format(TimeFormat)
 		}
 
-		duration := t.Interval.Duration().Truncate(time.Second)
-		totalDuration += t.Interval.Duration().Truncate(time.Second)
+		tag := i.Tag
+		if tag == "" {
+			tag = "-"
+		}
+		duration := i.Duration().Truncate(time.Second)
+		totalDuration += i.Duration().Truncate(time.Second)
 
 		table.Append([]string{
-			strconv.Itoa(int(t.ID)),
-			t.Tag,
+			strconv.Itoa(int(i.ID)),
+			tag,
 			start,
 			end,
 			duration.String(),
@@ -66,7 +59,7 @@ func RenderTable(w io.Writer, trackings ...Tracking) {
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 	table.SetFooterAlignment(tablewriter.ALIGN_RIGHT)
 
-	if len(trackings) > 1 {
+	if len(intervals) > 1 {
 		totalDuration = totalDuration.Truncate(time.Second)
 		table.SetFooter([]string{"", "", "", "Total", totalDuration.String()})
 	}

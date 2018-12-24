@@ -1,64 +1,58 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/martinohmann/timetracker/pkg/database"
-	"github.com/martinohmann/timetracker/pkg/tracking"
+	"github.com/martinohmann/timetracker/pkg/interval"
 	"github.com/spf13/cobra"
 )
 
 var stopCmd = &cobra.Command{
 	Use:   "stop",
-	Short: "stop time tracking",
-	Long:  `Long description`,
+	Short: "Stop an interval",
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(FlagDatabase)
+		db := database.MustOpen(FlagDatabase, FlagDebug)
 		defer db.Close()
 
 		var err error
-		var t tracking.Tracking
+		var i interval.Interval
 
 		if FlagTag != "" {
 			db = db.Where("tag = ?", FlagTag)
 		}
 
 		if FlagID > 0 {
-			err = db.First(&t, FlagID).Error
+			err = db.First(&i, FlagID).Error
 		} else {
-			err = db.
-				Joins("JOIN intervals ON trackings.interval_id = intervals.id").
-				Where("intervals.end = ?", time.Time{}).
-				Last(&t).Error
+			err = db.Where("end = ?", time.Time{}).
+				Last(&i).Error
 		}
 
 		if gorm.IsRecordNotFoundError(err) {
-			fmt.Println("nothing to stop")
+			cmd.Println("nothing to stop")
 			os.Exit(0)
 		} else if err != nil {
-			fmt.Println(err)
+			cmd.Println(err)
 			os.Exit(1)
 		}
 
-		if t.Finished {
-			fmt.Printf("tracking %d is already finished\n", t.ID)
+		if i.IsClosed() {
+			cmd.Printf("interval %d is already closed\n", i.ID)
 			os.Exit(1)
 		}
 
-		t.Interval.End = time.Now()
-		t.Finished = true
+		i.End = time.Now()
 
-		db.Save(&t)
+		db.Save(&i)
 
-		tracking.RenderTable(os.Stdout, t)
+		interval.RenderTable(cmd.OutOrStdout(), i)
 	},
 }
 
 func init() {
-	stopCmd.Flags().StringVarP(&FlagTag, "tag", "t", "", "Tracking tag to use")
-	stopCmd.Flags().IntVarP(&FlagID, "id", "", 0, "Tracking ID")
+	stopCmd.Flags().IntVarP(&FlagID, "id", "", 0, "interval ID")
 	rootCmd.AddCommand(stopCmd)
 }

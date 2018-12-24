@@ -5,36 +5,35 @@ import (
 	"os"
 
 	"github.com/martinohmann/timetracker/pkg/database"
-	"github.com/martinohmann/timetracker/pkg/tracking"
+	"github.com/martinohmann/timetracker/pkg/interval"
 	"github.com/spf13/cobra"
 )
 
-var delCmd = &cobra.Command{
+var deleteCmd = &cobra.Command{
 	Use:     "delete",
 	Aliases: []string{"del"},
-	Short:   "Delete a tracked time",
-	Long:    `Long description`,
+	Short:   "Delete an interval",
 	Run: func(cmd *cobra.Command, args []string) {
-		db := database.MustOpen(FlagDatabase)
+		db := database.MustOpen(FlagDatabase, FlagDebug)
 		defer db.Close()
 
-		var t tracking.Tracking
+		var i interval.Interval
 
-		if err := db.First(&t, FlagID).Error; err != nil {
-			fmt.Println(err)
+		if err := db.First(&i, FlagID).Error; err != nil {
+			cmd.Println(err)
 			os.Exit(1)
 		}
 
-		db.Delete(&t)
+		db.Delete(&i)
 
-		tracking.RenderTable(os.Stdout, t)
+		interval.RenderTable(cmd.OutOrStdout(), i)
 
 		fmt.Println("deleted")
 	},
 }
 
 func init() {
-	delCmd.Flags().IntVarP(&FlagID, "id", "", 0, "Tracking ID")
-	delCmd.MarkFlagRequired("id")
-	rootCmd.AddCommand(delCmd)
+	deleteCmd.Flags().IntVarP(&FlagID, "id", "", 0, "interval ID")
+	deleteCmd.MarkFlagRequired("id")
+	rootCmd.AddCommand(deleteCmd)
 }
