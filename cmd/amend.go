@@ -44,11 +44,7 @@ func amend(cmd *cobra.Command, args []string) {
 	intervals, err := database.FindOverlappingIntervals(i)
 	exitOnError(err)
 
-	for _, in := range intervals {
-		if in.ID == i.ID {
-			continue
-		}
-
+	if len(intervals) > 0 {
 		table.Render(cmd.OutOrStdout(), intervals...)
 		cmd.Printf("there already are intervals for tag %q which overlap with the specified interval\n", i.Tag)
 		os.Exit(1)

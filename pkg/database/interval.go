@@ -34,6 +34,7 @@ func FindOverlappingIntervals(i interval.Interval) (is []interval.Interval, err 
 			time.Time{},
 		).
 		Where("tag = ?", i.Tag).
+		Where("id != ?", i.ID).
 		Find(&is).Error
 
 	return is, excludeRecordNotFoundError(err)
