@@ -24,15 +24,16 @@ func SaveInterval(i *interval.Interval) error {
 // FindOverlappingIntervals finds intervals that are overlapping with i
 func FindOverlappingIntervals(i interval.Interval) (is []interval.Interval, err error) {
 	err = db.
-		Where("tag = ?", i.Tag).
 		Where(
-			"(start <= ? AND end >= ?) OR (start <= ? AND end >= ?) OR (end = ?)",
+			`(start BETWEEN $1 AND $2)
+				OR (end BETWEEN $1 AND $2)
+				OR (start <= $1 AND end >= $2)
+				OR (start <= $2 AND end = $3)`,
 			i.Start,
-			i.Start,
-			i.End,
 			i.End,
 			time.Time{},
 		).
+		Where("tag = ?", i.Tag).
 		Find(&is).Error
 
 	return is, excludeRecordNotFoundError(err)

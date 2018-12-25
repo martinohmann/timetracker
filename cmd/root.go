@@ -23,16 +23,16 @@ var (
 	dateString      string
 	startDateString string
 	endDateString   string
-	id              int
-	month           int
-	tag             string
-	year            int
 
 	date      time.Time
 	startDate time.Time
 	endDate   time.Time
 
+	tag    string
 	config string
+	id     int
+	month  int
+	year   int
 )
 
 func init() {

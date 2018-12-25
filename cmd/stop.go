@@ -50,5 +50,5 @@ func stop(cmd *cobra.Command, args []string) {
 
 	table.Render(cmd.OutOrStdout(), i)
 
-	cmd.Printf("interval with ID %d closed\n", id)
+	cmd.Printf("interval with ID %d closed\n", i.ID)
 }
