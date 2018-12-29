@@ -18,11 +18,11 @@ func (s SortByDate) Swap(i, j int) {
 func (s SortByDate) Less(i, j int) bool {
 	a, b := s[i], s[j]
 
-	if a.Before(b) {
+	if a.Before(&b) {
 		return true
 	}
 
-	if a.After(b) {
+	if a.After(&b) {
 		return false
 	}
 

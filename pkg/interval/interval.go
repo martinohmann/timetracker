@@ -33,13 +33,13 @@ func (i *Interval) Duration() time.Duration {
 }
 
 // Equal returns true if the interval has the same start and end as other
-func (i *Interval) Equal(other Interval) bool {
+func (i *Interval) Equal(other *Interval) bool {
 	return i.Start.Equal(other.Start) && i.End.Equal(other.End)
 }
 
 // Before return true if the interval started before other, or if start times
 // are the same and it end before other, false otherwise
-func (i *Interval) Before(other Interval) bool {
+func (i *Interval) Before(other *Interval) bool {
 	if i.Start.Before(other.Start) || (i.Start.Equal(other.Start) && i.End.Before(other.End)) {
 		return true
 	}
@@ -48,6 +48,6 @@ func (i *Interval) Before(other Interval) bool {
 }
 
 // After returns true if interval start after other
-func (i *Interval) After(other Interval) bool {
+func (i *Interval) After(other *Interval) bool {
 	return !i.Equal(other) && !i.Before(other)
 }

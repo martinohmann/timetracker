@@ -11,7 +11,7 @@ require (
 	github.com/google/go-cmp v0.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jinzhu/gorm v1.9.2
-	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a
+	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/jinzhu/now v0.0.0-20181116074157-8ec929ed50c3 // indirect
 	github.com/lib/pq v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -21,7 +21,7 @@ require (
 	github.com/simplereach/timeutils v1.2.0 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
-	golang.org/x/arch v0.0.0-20181203225421-5a4828bb7045 // indirect
+	github.com/stretchr/testify v1.2.2
 	golang.org/x/sys v0.0.0-20181221143128-b4a75ba826a6 // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/mattes/go-expand-tilde.v1 v1.0.0-20150330173918-cb884138e64c
