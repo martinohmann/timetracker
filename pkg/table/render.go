@@ -26,7 +26,7 @@ func Render(w io.Writer, intervals ...interval.Interval) {
 
 	table.SetHeader([]string{"ID", "Tag", "Start", "End", "Duration"})
 
-	var start, end, tag string
+	var start, end, tag, humanDuration string
 	var duration, total time.Duration
 
 	for _, i := range intervals {
@@ -44,14 +44,20 @@ func Render(w io.Writer, intervals ...interval.Interval) {
 		}
 
 		duration = i.Duration()
-		total += duration
+
+		if duration > 0 {
+			total += duration
+			humanDuration = formatDuration(duration)
+		} else {
+			humanDuration = "not started"
+		}
 
 		table.Append([]string{
 			strconv.Itoa(int(i.ID)),
 			tag,
 			start,
 			end,
-			duration.Truncate(time.Second).String(),
+			humanDuration,
 		})
 	}
 
@@ -61,11 +67,15 @@ func Render(w io.Writer, intervals ...interval.Interval) {
 			"",
 			"",
 			"Total",
-			total.Truncate(time.Second).String(),
+			formatDuration(total),
 		})
 	}
 
 	table.Render()
+}
+
+func formatDuration(d time.Duration) string {
+	return d.Truncate(time.Second).String()
 }
 
 // configureTable set table formatting options

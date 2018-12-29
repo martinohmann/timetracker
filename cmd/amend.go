@@ -55,5 +55,4 @@ func amend(cmd *cobra.Command, args []string) {
 	table.Render(cmd.OutOrStdout(), i)
 
 	cmd.Printf("interval with ID %d updated\n", i.ID)
-
 }
