@@ -28,10 +28,11 @@ func start(cmd *cobra.Command, args []string) {
 	database.Init(viper.GetString("database"))
 	defer database.Close()
 
-	count, err := database.CountOpenIntervalsForTag(tag)
+	intervals, err := database.FindOpenIntervalsForTag(tag)
 	exitOnError(err)
 
-	if count > 0 {
+	if len(intervals) > 0 {
+		table.Render(cmd.OutOrStdout(), intervals...)
 		cmd.Printf("there is already an open interval for tag %q\n", tag)
 		os.Exit(1)
 	}

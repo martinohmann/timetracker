@@ -40,12 +40,13 @@ func FindOverlappingIntervals(i interval.Interval) (is []interval.Interval, err 
 	return is, excludeRecordNotFoundError(err)
 }
 
-// CountOpenIntervalsForTag counts open intervals for tag
-func CountOpenIntervalsForTag(tag string) (count int, err error) {
-	return count, db.Model(&interval.Interval{}).
-		Where("tag = ?", tag).
+// FindOpenIntervalsForTag finds open intervals for tag
+func FindOpenIntervalsForTag(tag string) (is []interval.Interval, err error) {
+	err = db.Where("tag = ?", tag).
 		Where("end = ?", time.Time{}).
-		Count(&count).Error
+		Find(&is).Error
+
+	return is, excludeRecordNotFoundError(err)
 }
 
 // FindLastOpenIntervalForTag finds the last open interval for tag

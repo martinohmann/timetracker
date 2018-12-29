@@ -24,7 +24,7 @@ var (
 		Use:     "year [tag]",
 		Aliases: []string{"y"},
 		Short:   "Show year's intervals",
-		PreRun:  showYear,
+		PreRun:  prepareYear,
 		Run:     show,
 	}
 
@@ -32,7 +32,7 @@ var (
 		Use:     "month [tag]",
 		Aliases: []string{"m"},
 		Short:   "Show month's intervals",
-		PreRun:  showMonth,
+		PreRun:  prepareMonth,
 		Run:     show,
 	}
 
@@ -40,7 +40,7 @@ var (
 		Use:     "week [tag]",
 		Aliases: []string{"w"},
 		Short:   "Show week's intervals",
-		PreRunE: showWeek,
+		PreRunE: prepareWeek,
 		Run:     show,
 	}
 
@@ -48,7 +48,7 @@ var (
 		Use:     "date [tag]",
 		Aliases: []string{"d", "day"},
 		Short:   "Show date's intervals",
-		PreRunE: showDate,
+		PreRunE: prepareDate,
 		Run:     show,
 	}
 )
@@ -72,17 +72,17 @@ func init() {
 	rootCmd.AddCommand(showCmd)
 }
 
-func showYear(cmd *cobra.Command, args []string) {
+func prepareYear(cmd *cobra.Command, args []string) {
 	startDate = dateutil.BeginOfDay(year, time.January, 1)
 	endDate = startDate.AddDate(1, 0, 0)
 }
 
-func showMonth(cmd *cobra.Command, args []string) {
+func prepareMonth(cmd *cobra.Command, args []string) {
 	startDate = dateutil.BeginOfDay(year, time.Month(month), 1)
 	endDate = startDate.AddDate(0, 1, 0)
 }
 
-func showWeek(cmd *cobra.Command, args []string) (err error) {
+func prepareWeek(cmd *cobra.Command, args []string) (err error) {
 	if date, err = dateutil.ParseDate(dateString, time.Now()); err != nil {
 		return
 	}
@@ -97,7 +97,7 @@ func showWeek(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
-func showDate(cmd *cobra.Command, args []string) (err error) {
+func prepareDate(cmd *cobra.Command, args []string) (err error) {
 	if date, err = dateutil.ParseDate(dateString, time.Now()); err != nil {
 		return
 	}

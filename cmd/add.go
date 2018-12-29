@@ -49,10 +49,11 @@ func add(cmd *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 	} else {
-		count, err := database.CountOpenIntervalsForTag(i.Tag)
+		intervals, err := database.FindOpenIntervalsForTag(i.Tag)
 		exitOnError(err)
 
-		if count > 0 {
+		if len(intervals) > 0 {
+			table.Render(cmd.OutOrStdout(), intervals...)
 			cmd.Printf("there is already an open interval for tag %q\n", i.Tag)
 			os.Exit(1)
 		}
