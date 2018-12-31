@@ -1,7 +1,6 @@
 package dateutil
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -13,7 +12,7 @@ func TestParseDate(t *testing.T) {
 		given        string
 		defaultValue []time.Time
 		expected     time.Time
-		expectedErr  error
+		expectError  bool
 	}{
 		{
 			given:        "",
@@ -26,16 +25,15 @@ func TestParseDate(t *testing.T) {
 		},
 		{
 			given:       "foo",
-			expectedErr: errors.New(`Could not find format for "foo"`),
+			expectError: true,
 		},
 	}
 
 	for _, tt := range tests {
 		res, err := ParseDate(tt.given, tt.defaultValue...)
 
-		if tt.expectedErr != nil {
+		if tt.expectError {
 			assert.Error(t, err)
-			assert.Equal(t, tt.expectedErr, err)
 		} else {
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, res)
