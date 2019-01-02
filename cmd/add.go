@@ -41,7 +41,7 @@ func add(cmd *cobra.Command, args []string) {
 
 	if i.IsClosed() {
 		intervals, err := database.FindOverlappingIntervals(i)
-		exitOnError(err)
+		exitOnError(cmd, err)
 
 		if len(intervals) > 0 {
 			table.Render(cmd.OutOrStdout(), intervals...)
@@ -50,7 +50,7 @@ func add(cmd *cobra.Command, args []string) {
 		}
 	} else {
 		intervals, err := database.FindOpenIntervalsForTag(i.Tag)
-		exitOnError(err)
+		exitOnError(cmd, err)
 
 		if len(intervals) > 0 {
 			table.Render(cmd.OutOrStdout(), intervals...)
@@ -59,7 +59,7 @@ func add(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	exitOnError(database.SaveInterval(&i))
+	exitOnError(cmd, database.SaveInterval(&i))
 
 	table.Render(cmd.OutOrStdout(), i)
 

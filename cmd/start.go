@@ -29,7 +29,7 @@ func start(cmd *cobra.Command, args []string) {
 	defer database.Close()
 
 	intervals, err := database.FindOpenIntervalsForTag(tag)
-	exitOnError(err)
+	exitOnError(cmd, err)
 
 	if len(intervals) > 0 {
 		table.Render(cmd.OutOrStdout(), intervals...)
@@ -42,7 +42,7 @@ func start(cmd *cobra.Command, args []string) {
 		Start: time.Now(),
 	}
 
-	exitOnError(database.SaveInterval(&i))
+	exitOnError(cmd, database.SaveInterval(&i))
 
 	table.Render(cmd.OutOrStdout(), i)
 

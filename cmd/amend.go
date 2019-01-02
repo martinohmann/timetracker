@@ -27,7 +27,7 @@ func amend(cmd *cobra.Command, args []string) {
 	defer database.Close()
 
 	i, err := database.FindIntervalByID(id)
-	exitOnError(err)
+	exitOnError(cmd, err)
 
 	if !startDate.IsZero() {
 		i.Start = startDate
@@ -42,7 +42,7 @@ func amend(cmd *cobra.Command, args []string) {
 	}
 
 	intervals, err := database.FindOverlappingIntervals(i)
-	exitOnError(err)
+	exitOnError(cmd, err)
 
 	if len(intervals) > 0 {
 		table.Render(cmd.OutOrStdout(), intervals...)
@@ -50,7 +50,7 @@ func amend(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	exitOnError(database.SaveInterval(&i))
+	exitOnError(cmd, database.SaveInterval(&i))
 
 	table.Render(cmd.OutOrStdout(), i)
 

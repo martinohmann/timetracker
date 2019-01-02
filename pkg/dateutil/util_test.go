@@ -47,3 +47,15 @@ func TestBeginOfDay(t *testing.T) {
 
 	assert.Equal(t, expected, res)
 }
+
+func TestFormat(t *testing.T) {
+	date := time.Date(2018, time.December, 29, 12, 34, 56, 99, time.Local)
+
+	assert.Equal(t, "2018/12/29 12:34:56", Format(date))
+}
+
+func TestFormatDuration(t *testing.T) {
+	duration := time.Hour*3 + time.Minute + time.Second*2 + time.Millisecond*100
+
+	assert.Equal(t, "3h1m2s", FormatDuration(duration))
+}

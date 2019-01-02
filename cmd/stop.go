@@ -37,7 +37,7 @@ func stop(cmd *cobra.Command, args []string) {
 		i, err = database.FindLastOpenIntervalForTag(tag)
 	}
 
-	exitOnError(err)
+	exitOnError(cmd, err)
 
 	if i.IsClosed() {
 		cmd.Printf("interval %d is already closed\n", i.ID)
@@ -46,7 +46,7 @@ func stop(cmd *cobra.Command, args []string) {
 
 	i.Close()
 
-	exitOnError(database.SaveInterval(&i))
+	exitOnError(cmd, database.SaveInterval(&i))
 
 	table.Render(cmd.OutOrStdout(), i)
 

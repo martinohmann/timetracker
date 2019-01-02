@@ -25,11 +25,11 @@ func del(cmd *cobra.Command, args []string) {
 	defer database.Close()
 
 	i, err := database.FindIntervalByID(id)
-	exitOnError(err)
+	exitOnError(cmd, err)
 
-	exitOnError(database.DeleteInterval(i))
+	exitOnError(cmd, database.DeleteInterval(i))
 
 	table.Render(cmd.OutOrStdout(), i)
 
-	cmd.Printf("interval with ID %d deleted\n", id)
+	cmd.Printf("interval with ID %d deleted\n", i.ID)
 }

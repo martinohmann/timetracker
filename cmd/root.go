@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/martinohmann/timetracker/pkg/dateutil"
+	"github.com/martinohmann/timetracker/pkg/io"
 	"github.com/martinohmann/timetracker/pkg/version"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -15,9 +16,10 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:     "timetracker",
-		Short:   "Track time intervals using tags",
-		Version: version.Version,
+		Use:               "timetracker",
+		Short:             "Track time intervals using tags",
+		Version:           version.Version,
+		PersistentPreRunE: setVerbosity,
 	}
 
 	dateString      string
@@ -41,8 +43,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&config, "config", "", "config file (default is $HOME/.timetracker.yaml)")
 	rootCmd.PersistentFlags().String("database", "~/.timetracker.db", "path to sqlite database")
 	rootCmd.PersistentFlags().Bool("debug", false, "enable debug output")
+	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "silence output")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "verbose output")
 	viper.BindPFlag("database", rootCmd.PersistentFlags().Lookup("database"))
 	viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
+	viper.BindPFlag("quiet", rootCmd.PersistentFlags().Lookup("quiet"))
+	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -83,6 +89,15 @@ func parseDateRange(cmd *cobra.Command, args []string) (err error) {
 	return
 }
 
+// setVerbosity sets the output verbosity
+func setVerbosity(cmd *cobra.Command, args []string) (err error) {
+	if viper.GetBool("quiet") && !viper.GetBool("verbose") {
+		cmd.SetOutput(&io.NullWriter{})
+	}
+
+	return
+}
+
 func initializeYearFlag(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&year, "year", time.Now().Year(), "filter year")
 }
@@ -104,9 +119,9 @@ func initializeIdFlag(cmd *cobra.Command) {
 	cmd.Flags().IntVar(&id, "id", 0, "interval ID")
 }
 
-func exitOnError(err error) {
+func exitOnError(cmd *cobra.Command, err error) {
 	if err != nil {
-		fmt.Println(err)
+		cmd.Println(err)
 		os.Exit(1)
 	}
 }

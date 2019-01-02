@@ -16,7 +16,7 @@ var (
 		Use:               "show [tag]",
 		Aliases:           []string{"s", "status"},
 		Short:             "Show all intervals",
-		PersistentPreRunE: preRunE(parseTagArg, parseDateRange),
+		PersistentPreRunE: preRunE(parseTagArg, parseDateRange, setVerbosity),
 		Run:               show,
 	}
 
@@ -112,12 +112,27 @@ func show(cmd *cobra.Command, args []string) {
 	database.Init(viper.GetString("database"))
 	defer database.Close()
 
+	printShowHeader(cmd)
+
 	intervals, err := database.FindIntervalsByCriteria(interval.Interval{
 		Tag:   tag,
 		Start: startDate,
 		End:   endDate,
 	})
-	exitOnError(err)
+	exitOnError(cmd, err)
 
 	table.Render(cmd.OutOrStdout(), intervals...)
+}
+
+func printShowHeader(cmd *cobra.Command) {
+	switch {
+	case startDate.IsZero() && endDate.IsZero():
+		cmd.Println("All intervals")
+	case startDate.IsZero():
+		cmd.Printf("All intervals until %s\n", dateutil.Format(endDate))
+	case endDate.IsZero():
+		cmd.Printf("All intervals since %s\n", dateutil.Format(startDate))
+	default:
+		cmd.Printf("All intervals between %s and %s\n", dateutil.Format(startDate), dateutil.Format(endDate))
+	}
 }

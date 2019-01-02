@@ -6,12 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/martinohmann/timetracker/pkg/dateutil"
 	"github.com/martinohmann/timetracker/pkg/interval"
 	"github.com/olekukonko/tablewriter"
 )
-
-// TimeFormat defines the time format for the table
-var TimeFormat = "2006/01/02 15:04:05"
 
 // Render renders a table of intervals and writes the result to w
 func Render(w io.Writer, intervals ...interval.Interval) {
@@ -30,9 +28,9 @@ func Render(w io.Writer, intervals ...interval.Interval) {
 	var duration, total time.Duration
 
 	for _, i := range intervals {
-		start = i.Start.Format(TimeFormat)
+		start = dateutil.Format(i.Start)
 		if i.IsClosed() {
-			end = i.End.Format(TimeFormat)
+			end = dateutil.Format(i.End)
 		} else {
 			end = "open"
 		}
@@ -47,7 +45,7 @@ func Render(w io.Writer, intervals ...interval.Interval) {
 
 		if duration > 0 {
 			total += duration
-			humanDuration = formatDuration(duration)
+			humanDuration = dateutil.FormatDuration(duration)
 		} else {
 			humanDuration = "not started"
 		}
@@ -67,15 +65,11 @@ func Render(w io.Writer, intervals ...interval.Interval) {
 			"",
 			"",
 			"Total",
-			formatDuration(total),
+			dateutil.FormatDuration(total),
 		})
 	}
 
 	table.Render()
-}
-
-func formatDuration(d time.Duration) string {
-	return d.Truncate(time.Second).String()
 }
 
 // configureTable set table formatting options
