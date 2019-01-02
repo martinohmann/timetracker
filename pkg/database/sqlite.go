@@ -1,6 +1,8 @@
 package database
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -9,6 +11,20 @@ import (
 	"github.com/spf13/viper"
 	tilde "gopkg.in/mattes/go-expand-tilde.v1"
 )
+
+// SqliteFactory creates a new sqlite datastore
+var SqliteFactory = FactoryFunc(func(args ...interface{}) (Datastore, error) {
+	if len(args) == 0 {
+		return nil, errors.New("invalid data source")
+	}
+
+	switch filename := args[0].(type) {
+	case string:
+		return newSqlite(filename)
+	default:
+		return nil, fmt.Errorf("invalid database source: expected string, got %v", filename)
+	}
+})
 
 type sqliteDatastore struct {
 	db *gorm.DB

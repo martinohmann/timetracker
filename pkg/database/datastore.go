@@ -1,9 +1,6 @@
 package database
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/jinzhu/gorm"
 	"github.com/martinohmann/timetracker/pkg/interval"
 )
@@ -39,20 +36,6 @@ type Datastore interface {
 type FactoryFunc func(args ...interface{}) (Datastore, error)
 
 var (
-	// SqliteFactory creates a new sqlite datastore
-	SqliteFactory = FactoryFunc(func(args ...interface{}) (Datastore, error) {
-		if len(args) == 0 {
-			return nil, errors.New("invalid data source")
-		}
-
-		switch filename := args[0].(type) {
-		case string:
-			return newSqlite(filename)
-		default:
-			return nil, fmt.Errorf("invalid database source: expected string, got %v", filename)
-		}
-	})
-
 	datastore Datastore
 	factory   FactoryFunc
 )
