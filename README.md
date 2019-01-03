@@ -1,6 +1,8 @@
 timetracker
 ===========
 
+Simple CLI tool to track time for different tasks. Can be queried for total time spent within different periods (e.g. by week, month, year). Uses SQLite as storage.
+
 Installation
 ------------
 
@@ -12,8 +14,43 @@ Usage
 -----
 
 ```go
-todo
+$ timetracker start foo
++----+-----+---------------------+------+----------+
+| ID | Tag | Start               | End  | Duration |
++----+-----+---------------------+------+----------+
+|  1 | foo | 2019/01/02 17:43:29 | open |       0s |
++----+-----+---------------------+------+----------+
+interval with tag "foo" started
+
+$ timetracker stop foo
++----+-----+---------------------+---------------------+----------+
+| ID | Tag | Start               | End                 | Duration |
++----+-----+---------------------+---------------------+----------+
+|  1 | foo | 2019/01/02 17:43:29 | 2019/01/02 17:43:36 |       7s |
++----+-----+---------------------+---------------------+----------+
+interval with ID 1 closed
+
+$ timetracker start bar
++----+-----+---------------------+------+----------+
+| ID | Tag | Start               | End  | Duration |
++----+-----+---------------------+------+----------+
+|  2 | bar | 2019/01/02 17:43:43 | open |       0s |
++----+-----+---------------------+------+----------+
+interval with tag "bar" started
+
+$ timetracker show day
+All intervals between 2019/01/02 00:00:00 and 2019/01/03 00:00:00
++----+-----+---------------------+---------------------+----------+
+| ID | Tag | Start               | End                 | Duration |
++----+-----+---------------------+---------------------+----------+
+|  1 | foo | 2019/01/02 17:43:29 | 2019/01/02 17:43:36 |       7s |
+|  2 | bar | 2019/01/02 17:43:43 | open                |      20s |
++----+-----+---------------------+---------------------+----------+
+|                                                Total |      27s |
++----+-----+---------------------+---------------------+----------+
 ```
+
+Run `timetracker help` for all available subcommands and options.
 
 License
 -------

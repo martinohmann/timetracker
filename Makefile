@@ -28,7 +28,7 @@ coverage: ## generate code coverage
 
 .PHONY: misspell
 misspell: ## check spelling in go files
-	misspell *.go
+	misspell $$(go list ./... | grep -v /vendor/)
 
 
 .PHONY: clean
