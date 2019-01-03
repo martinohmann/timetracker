@@ -1,6 +1,11 @@
 timetracker
 ===========
 
+[![Build Status](https://travis-ci.org/martinohmann/timetracker.svg)](https://travis-ci.org/martinohmann/timetracker)
+[![codecov](https://codecov.io/gh/martinohmann/timetracker/branch/master/graph/badge.svg)](https://codecov.io/gh/martinohmann/timetracker)
+[![Go Report Card](https://goreportcard.com/badge/github.com/martinohmann/timetracker)](https://goreportcard.com/report/github.com/martinohmann/timetracker)
+[![GoDoc](https://godoc.org/github.com/martinohmann/timetracker?status.svg)](https://godoc.org/github.com/martinohmann/timetracker)
+
 Simple CLI tool to track time for different tasks. Can be queried for total time spent within different periods (e.g. by week, month, year). Uses SQLite as storage.
 
 Installation
