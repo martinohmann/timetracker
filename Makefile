@@ -18,6 +18,10 @@ build: ## build
 install: build ## install
 	cp timetracker $(GOPATH)/bin
 
+.PHONY: deps
+deps: ## install go deps
+	go mod vendor
+
 .PHONY: test
 test: ## run tests
 	go test -race -tags="$(TAGS)" $$(go list ./... | grep -v /vendor/)
