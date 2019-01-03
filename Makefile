@@ -14,6 +14,10 @@ build: ## build
 			-X 'github.com/martinohmann/timetracker/pkg/version.BuildTime=$(BUILD_TIME)'" \
 		main.go
 
+.PHONY: install
+install: build ## install
+	cp timetracker $(GOPATH)/bin
+
 .PHONY: test
 test: ## run tests
 	go test -race -tags="$(TAGS)" $$(go list ./... | grep -v /vendor/)
@@ -33,4 +37,4 @@ misspell: ## check spelling in go files
 
 .PHONY: clean
 clean: ## clean artifacts and dependencies
-	rm -rf vendor/ ttc
+	rm -rf vendor/ timetracker
