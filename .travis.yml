@@ -2,6 +2,8 @@
 language: go
 sudo: false
 go: 1.11.x
+env:
+  - GO111MODULE=on
 script:
   - make deps
   - make vet
