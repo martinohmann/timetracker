@@ -70,13 +70,7 @@ func initConfig() {
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error while reading config file %s:\n", viper.ConfigFileUsed())
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	viper.ReadInConfig()
 }
 
 // parseDateRange converts string flags to proper time.Time values
