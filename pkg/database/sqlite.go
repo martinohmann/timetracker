@@ -101,20 +101,20 @@ func (d *sqliteDatastore) FindLastOpenIntervalForTag(tag string) (i interval.Int
 
 // FindIntervalsByCriteria finds intervals matching the criteria
 func (d *sqliteDatastore) FindIntervalsByCriteria(c interval.Interval) (is []interval.Interval, err error) {
-	stmt := d.db
+	db := d.db
 	if !c.Start.IsZero() {
-		stmt = stmt.Where("start >= ?", c.Start)
+		db = db.Where("start >= ?", c.Start)
 	}
 
 	if !c.End.IsZero() {
-		stmt = stmt.Where("start < ? AND end < ?", c.End, c.End)
+		db = db.Where("start < ? AND end < ?", c.End, c.End)
 	}
 
 	if c.Tag != "" {
-		stmt = stmt.Where("tag = ?", c.Tag)
+		db = db.Where("tag = ?", c.Tag)
 	}
 
-	err = stmt.Find(&is).Error
+	err = db.Find(&is).Error
 
 	return is, excludeRecordNotFoundError(err)
 }
@@ -122,4 +122,13 @@ func (d *sqliteDatastore) FindIntervalsByCriteria(c interval.Interval) (is []int
 // Close closes the database
 func (d *sqliteDatastore) Close() error {
 	return d.db.Close()
+}
+
+// excludeRecordNotFoundError returns error if it is not a RecordNotFoundError, nil otherwise
+func excludeRecordNotFoundError(err error) error {
+	if err != nil && !gorm.IsRecordNotFoundError(err) {
+		return err
+	}
+
+	return nil
 }

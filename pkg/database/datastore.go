@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/martinohmann/timetracker/pkg/interval"
 )
 
@@ -96,13 +95,4 @@ func FindIntervalsByCriteria(c interval.Interval) ([]interval.Interval, error) {
 // Close closes the database
 func Close() error {
 	return datastore.Close()
-}
-
-// excludeRecordNotFoundError returns error if it is not a RecordNotFoundError, nil otherwise
-func excludeRecordNotFoundError(err error) error {
-	if err != nil && !gorm.IsRecordNotFoundError(err) {
-		return err
-	}
-
-	return nil
 }
