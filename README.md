@@ -8,12 +8,14 @@ Installation
 
 ```sh
 go get -u github.com/martinohmann/timetracker
+cd $GOPATH/src/github.com/martinohmann/timetracker
+make install
 ```
 
 Usage
 -----
 
-```go
+```sh
 $ timetracker start foo
 +----+-----+---------------------+------+----------+
 | ID | Tag | Start               | End  | Duration |
